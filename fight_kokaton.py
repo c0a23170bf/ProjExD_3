@@ -6,6 +6,7 @@ import pygame as pg
 WIDTH = 1600  # ゲームウィンドウの幅
 HEIGHT = 900  # ゲームウィンドウの高さ
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
+
 def check_bound(obj_rct: pg.Rect) -> tuple[bool, bool]:
     """
     オブジェクトが画面内or画面外を判定し，真理値タプルを返す関数
@@ -18,6 +19,8 @@ def check_bound(obj_rct: pg.Rect) -> tuple[bool, bool]:
     if obj_rct.bottom < 0 or HEIGHT < obj_rct.top:
         tate = False
     return yoko, tate
+
+
 class Bird:
     """
     ゲームキャラクター（こうかとん）に関するクラス
@@ -73,6 +76,26 @@ class Bird:
         if not (sum_mv[0] == 0 and sum_mv[1] == 0):
             self.img = __class__.imgs[tuple(sum_mv)]
         screen.blit(self.img, self.rct)
+
+
+class Explosion:
+    def __init__(self,obj,life:int):
+        self.imgs = [
+            pg.image.load("fig/explosion.gif"),
+            pg.transform.flip(pg.image.load("fig/explosion.gif"),True,True)
+        ]
+        self.img = self.imgs[0]
+        self.rct = self.img.get_rect()
+        self.rct.center = obj.rct.center
+        self.life = life
+
+    def update(self,screen):
+        if self.life > 0:
+            self.life -= 1
+            self.img = self.imgs[self.life % 2]
+            screen.blit(self.img,self.rct)
+
+
 class Bomb:
     """
     爆弾に関するクラス
@@ -101,6 +124,8 @@ class Bomb:
             self.vy *= -1
         self.rct.move_ip(self.vx, self.vy)
         screen.blit(self.img, self.rct)
+
+
 class Beam:
     def __init__(self, bird: Bird):
         """
@@ -119,6 +144,8 @@ class Beam:
         if check_bound(self.rct) == (True, True):
             self.rct.move_ip(self.vx, self.vy)
             screen.blit(self.img, self.rct)
+
+
 def main():
     pg.display.set_caption("たたかえ！こうかとん")
     screen = pg.display.set_mode((WIDTH, HEIGHT))    
@@ -126,6 +153,7 @@ def main():
     bird = Bird((900, 400))
     bomb = Bomb((255, 0, 0), 10)
     beam = None
+    exps = []
     clock = pg.time.Clock()
     tmr = 0
     while True:
@@ -145,6 +173,9 @@ def main():
                 return
         if not (beam is None or bomb is None):
             if beam.rct.colliderect(bomb.rct):  # ビームと爆弾が衝突したら
+                exp = Explosion(bomb,100)
+                exps.append(exp)
+                exps = [exp for exp in exps if exp.life > 0]
                 beam = None
                 bomb = None
                 bird.change_img(6, screen)
@@ -154,11 +185,15 @@ def main():
         bird.update(key_lst, screen)
         if bomb is not None:
             bomb.update(screen)
+        for exp in exps:
+            exp.update(screen)
         if beam is not None:
             beam.update(screen)
         pg.display.update()
         tmr += 1
-        clock.tick(50)
+        clock.tick(50) 
+
+
 if __name__ == "__main__":
     pg.init()
     main()
