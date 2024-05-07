@@ -117,9 +117,6 @@ class Bomb:
 
 class Beam:
     def __init__(self, bird: Bird):
-        """
-        あとでかく
-        """
         self.img = pg.transform.rotozoom(pg.image.load("fig/beam.png"), 0, 2.0)  # ビーム画像Surface
         self.rct: pg.Rect = self.img.get_rect()  # ビーム画像Rect
         self.rct.left = bird.rct.right  # ビームの左座標にこうかとんの右座標を設定する
@@ -162,10 +159,22 @@ def main():
             pg.display.update()
             time.sleep(1)
             return
+        if bomb is not None:
+            if bird.rct.colliderect(bomb.rct):
+                # ゲームオーバー時に，こうかとん画像を切り替え，1秒間表示させる
+                bird.change_img(8, screen)
+                pg.display.update()
+                time.sleep(1)
+                return
+        if not (beam is None or bomb is None):
+            if beam.rct.colliderect(bomb.rct):  # ビームと爆弾が衝突したら
+                beam = None
+                bomb = None
 
         key_lst = pg.key.get_pressed()
         bird.update(key_lst, screen)
-        bomb.update(screen)
+        if bomb is not None:
+            bomb.update(screen)  
         if beam is not None:
             beam.update(screen)
         pg.display.update()
