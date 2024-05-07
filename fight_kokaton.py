@@ -78,6 +78,24 @@ class Bird:
         screen.blit(self.img, self.rct)
 
 
+class Explosion:
+    def __init__(self,obj,life:int):
+        self.imgs = [
+            pg.image.load("fig/explosion.gif"),
+            pg.transform.flip(pg.image.load("fig/explosion.gif"),True,True)
+        ]
+        self.img = self.imgs[0]
+        self.rct = self.img.get_rect()
+        self.rct.center = obj.rct.center
+        self.life = life
+
+    def update(self,screen):
+        if self.life > 0:
+            self.life -= 1
+            self.img = self.imgs[self.life % 2]
+            screen.blit(self.img,self.rct)
+
+
 class Score:
     def __init__(self):
         #self.fonto = pg.font.SysFont("hgp創英角ポップ体", 30)
@@ -157,8 +175,9 @@ def main():
     bg_img = pg.image.load("fig/pg_bg.jpg")
     bird = Bird((900, 400))
     bomb = Bomb((255, 0, 0), 10)
-    score = Score()
     beam = None
+    exps = []
+    score = Score()
     clock = pg.time.Clock()
     tmr = 0
     while True:
@@ -178,9 +197,12 @@ def main():
                 return
         if not (beam is None or bomb is None):
             if beam.rct.colliderect(bomb.rct):  # ビームと爆弾が衝突したら
+                exp = Explosion(bomb,100)
+                exps.append(exp)
+                exps = [exp for exp in exps if exp.life > 0]
+                score.increase_score()
                 beam = None
                 bomb = None
-                score.increase_score()
                 bird.change_img(6, screen)
                 pg.display.update()
 
@@ -189,6 +211,8 @@ def main():
         score.update(screen)
         if bomb is not None:
             bomb.update(screen)
+        for exp in exps:
+            exp.update(screen)
         if beam is not None:
             beam.update(screen)
         pg.display.update()
