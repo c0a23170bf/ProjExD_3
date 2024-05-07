@@ -78,6 +78,29 @@ class Bird:
         screen.blit(self.img, self.rct)
 
 
+class Score:
+    def __init__(self):
+        #self.fonto = pg.font.SysFont("hgp創英角ポップ体", 30)
+        #self.score = 0
+        #self.update_img()
+
+        self.fonto = pg.font.SysFont("hgp創英角ﾎﾟｯﾌﾟ体", 30)
+        self.score = 0
+        self.update_img()
+        self.rct = self.img.get_rect()
+        self.rct.center = (100, HEIGHT - 50)
+
+    def update_img(self):
+        self.img = self.fonto.render("score : " + str(self.score), 0, (0, 0, 255))
+
+    def update(self, screen:pg.Surface):
+        self.update_img()
+        screen.blit(self.img, self.rct)
+
+    def increase_score(self):
+        self.score += 1
+
+
 class Bomb:
     """
     爆弾に関するクラス
@@ -134,6 +157,7 @@ def main():
     bg_img = pg.image.load("fig/pg_bg.jpg")
     bird = Bird((900, 400))
     bomb = Bomb((255, 0, 0), 10)
+    score = Score()
     beam = None
     clock = pg.time.Clock()
     tmr = 0
@@ -156,11 +180,13 @@ def main():
             if beam.rct.colliderect(bomb.rct):  # ビームと爆弾が衝突したら
                 beam = None
                 bomb = None
+                score.increase_score()
                 bird.change_img(6, screen)
                 pg.display.update()
 
         key_lst = pg.key.get_pressed()
         bird.update(key_lst, screen)
+        score.update(screen)
         if bomb is not None:
             bomb.update(screen)
         if beam is not None:
